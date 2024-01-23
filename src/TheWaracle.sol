@@ -17,14 +17,11 @@ interface IBookOfLore {
     ) external;
 }
 
-contract DeadSecrets is ReentrancyGuard, Ownable {
-    error DeadSecrets__TokenContractNotOnAllowlist();
-    error DeadSecrets__TokenDoesNotExist();
-    error DeadSecrets__MustOwnTokenToFindEnemy();
+contract TheWaracle is ReentrancyGuard, Ownable {
+    error TheWaracle__TokenContractNotOnAllowlist();
+    error TheWaracle__TokenDoesNotExist();
+    error TheWaracle__MustOwnTokenToFindEnemy();
     error ERC721NonexistentToken(); // For debugging
-    error LogError(); // For debugging
-
-    event LogBytes(bytes lowLevelData); // For debugging
 
     struct Enemy {
         address enemyContract;
@@ -43,13 +40,13 @@ contract DeadSecrets is ReentrancyGuard, Ownable {
     string public baseLoreURI;
 
     mapping(address tokenContract => mapping(uint256 tokenId => Enemy)) private enemies;
-    mapping(address => bool) public deadSecretsAllowlist;
+    mapping(address => bool) public waracleAllowlist;
 
     event EnemyFoundAndRecorded(address tokenContract, uint256 tokenId, address enemyContract, uint256 enemyTokenId);
 
     modifier onlyAllowedContract(address _tokenContract) {
-        if (deadSecretsAllowlist[_tokenContract] == false) {
-            revert DeadSecrets__TokenContractNotOnAllowlist();
+        if (waracleAllowlist[_tokenContract] == false) {
+            revert TheWaracle__TokenContractNotOnAllowlist();
         }
         _;
     }
@@ -74,7 +71,7 @@ contract DeadSecrets is ReentrancyGuard, Ownable {
         returns (address, uint256)
     {
         if (IERC721(_tokenContract).ownerOf(_tokenId) != msg.sender) {
-            revert DeadSecrets__MustOwnTokenToFindEnemy();
+            revert TheWaracle__MustOwnTokenToFindEnemy();
         }
         // Enemy already exists
         if ((enemies[_tokenContract][_tokenId]).enemyContract != address(0)) {
@@ -136,8 +133,8 @@ contract DeadSecrets is ReentrancyGuard, Ownable {
         baseLoreURI = _baseLoreURI;
     }
 
-    function setDeadSecretsAllowlist(address tokenContract) public onlyOwner {
-        deadSecretsAllowlist[tokenContract] = true;
+    function setWaracleAllowlist(address tokenContract) public onlyOwner {
+        waracleAllowlist[tokenContract] = true;
     }
 
     // Not truly/provably random, but good enough for our purposes
@@ -165,5 +162,9 @@ contract DeadSecrets is ReentrancyGuard, Ownable {
 
     function getEnemies(address _tokenContract, uint256 _tokenId) public view returns (address, uint256) {
         return ((enemies[_tokenContract][_tokenId]).enemyContract, (enemies[_tokenContract][_tokenId]).enemyTokenId);
+    }
+
+    function getWaracleAllowList(address _tokenContract) public view returns (bool) {
+        return waracleAllowlist[_tokenContract];
     }
 }

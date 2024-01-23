@@ -2,8 +2,8 @@
 pragma solidity ^0.8.19;
 
 import {Test, console} from "forge-std/Test.sol";
-import {DeadSecrets} from "../../src/DeadSecrets.sol";
-import {DeployDeadSecrets} from "../../script/DeployDeadSecrets.sol";
+import {TheWaracle} from "../../src/TheWaracle.sol";
+import {DeployTheWaracle} from "../../script/DeployTheWaracle.s.sol";
 import {HelperConfig} from "../../script/HelperConfig.s.sol";
 import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import {ERC721} from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
@@ -12,14 +12,12 @@ import {SoulMockContract} from "../mocks/SoulMockContract.sol";
 import {BookOfLoreMock} from "../../test/mocks/BookOfLoreMock.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
-contract DeadSecretsTest is Test {
-    error DeadSecrets__TokenContractNotOnAllowlist();
-    error DeadSecrets__MustOwnTokenToFindEnemy();
-    error DeadSecretsTest__Failed();
+contract TheWaracleTest is Test {
+    error TheWaracle__TokenContractNotOnAllowlist();
+    error TheWaracle__MustOwnTokenToFindEnemy();
+    error TheWaracle__Failed();
 
-    event logString(string log);
-
-    DeadSecrets deadSecrets;
+    TheWaracle theWaracle;
     HelperConfig helperConfig;
     NftMockContract wizMockContract;
     SoulMockContract soulsMockContract;
@@ -96,15 +94,15 @@ contract DeadSecretsTest is Test {
     }
 
     function setUp() public {
-        DeployDeadSecrets deployer = new DeployDeadSecrets();
-        (deadSecrets, helperConfig) = deployer.run();
+        DeployTheWaracle deployer = new DeployTheWaracle();
+        (theWaracle, helperConfig) = deployer.run();
         (wizardsAddress, soulsAddress, warriorsAddress, bookOfLoreAddress, baseLoreURI) =
             helperConfig.activeNetworkConfig();
 
-        vm.startPrank(deadSecrets.owner());
-        deadSecrets.setDeadSecretsAllowlist(wizardsAddress);
-        deadSecrets.setDeadSecretsAllowlist(soulsAddress);
-        deadSecrets.setDeadSecretsAllowlist(warriorsAddress);
+        vm.startPrank(theWaracle.owner());
+        theWaracle.setWaracleAllowlist(wizardsAddress);
+        theWaracle.setWaracleAllowlist(soulsAddress);
+        theWaracle.setWaracleAllowlist(warriorsAddress);
         vm.stopPrank();
 
         wizMockContract = new NftMockContract("Wizard", "WIZ");
@@ -113,7 +111,7 @@ contract DeadSecretsTest is Test {
         bookOfLoreMockContract = new BookOfLoreMock();
 
         vm.startPrank(BookOfLoreMock(bookOfLoreAddress).owner());
-        BookOfLoreMock(bookOfLoreAddress).setScribeAllowlist(address(deadSecrets), true);
+        BookOfLoreMock(bookOfLoreAddress).setScribeAllowlist(address(theWaracle), true);
         BookOfLoreMock(bookOfLoreAddress).setLoreTokenAllowlist(wizardsAddress, true);
         BookOfLoreMock(bookOfLoreAddress).setLoreTokenAllowlist(soulsAddress, true);
         BookOfLoreMock(bookOfLoreAddress).setLoreTokenAllowlist(warriorsAddress, true);
@@ -121,9 +119,9 @@ contract DeadSecretsTest is Test {
     }
 
     function testRevertsIfNotOnAllowList() public {
-        vm.expectRevert(DeadSecrets.DeadSecrets__TokenContractNotOnAllowlist.selector);
+        vm.expectRevert(TheWaracle.TheWaracle__TokenContractNotOnAllowlist.selector);
         vm.prank(PLAYER1);
-        deadSecrets.enemy(RANDOM_CONTRACT, 1);
+        theWaracle.enemy(RANDOM_CONTRACT, 1);
     }
 
     function testPlayerOneHasAnNft() public soulTokensPrepared allNftsMinted {
@@ -140,19 +138,19 @@ contract DeadSecretsTest is Test {
     ///////////////////////////
     // Test setUp is correct //
     ///////////////////////////
-    function testDeadSecretsAllowList() public {
-        assertEq(deadSecrets.deadSecretsAllowlist(wizardsAddress), true);
-        assertEq(deadSecrets.deadSecretsAllowlist(soulsAddress), true);
-        assertEq(deadSecrets.deadSecretsAllowlist(warriorsAddress), true);
+    function testWaracleAllowListSetUpCorrectly() public {
+        assertEq(theWaracle.getWaracleAllowList(wizardsAddress), true);
+        assertEq(theWaracle.getWaracleAllowList(soulsAddress), true);
+        assertEq(theWaracle.getWaracleAllowList(warriorsAddress), true);
     }
 
     ///////////////////////////
     //  onlyOwner functions  //
     ///////////////////////////
-    function testSetDeadSecretsAsOtherThanOwner() public {
+    function testSetTheWaracleAsOtherThanOwner() public {
         vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, PLAYER2));
         vm.prank(PLAYER2); // Player 2 is not the owner
-        deadSecrets.setDeadSecretsAllowlist(RANDOM_CONTRACT);
+        theWaracle.setWaracleAllowlist(RANDOM_CONTRACT);
     }
 
     ///////////////////////////
@@ -160,27 +158,27 @@ contract DeadSecretsTest is Test {
     ///////////////////////////
     function testFindAndStoreEnemyForAWizToken() public soulTokensPrepared allNftsMinted timePassed {
         vm.prank(PLAYER1);
-        (address enemyContract, uint256 enemyTokenId) = deadSecrets.enemy(wizardsAddress, 1);
+        (address enemyContract, uint256 enemyTokenId) = theWaracle.enemy(wizardsAddress, 1);
         vm.prank(PLAYER1);
-        (address enemyContract2, uint256 enemyTokenId2) = deadSecrets.getEnemies(wizardsAddress, 1);
+        (address enemyContract2, uint256 enemyTokenId2) = theWaracle.getEnemies(wizardsAddress, 1);
         assertEq(enemyContract, enemyContract2);
         assertEq(enemyTokenId, enemyTokenId2);
     }
 
     function testFindAndStoreEnemyBothDirections() public soulTokensPrepared allNftsMinted timePassed {
         vm.prank(PLAYER1);
-        (address enemyContract, uint256 enemyTokenId) = deadSecrets.enemy(wizardsAddress, 1);
+        (address enemyContract, uint256 enemyTokenId) = theWaracle.enemy(wizardsAddress, 1);
         vm.prank(PLAYER1);
-        (address shouldBeWizAddress, uint256 shouldBeWizTokenId) = deadSecrets.getEnemies(enemyContract, enemyTokenId);
+        (address shouldBeWizAddress, uint256 shouldBeWizTokenId) = theWaracle.getEnemies(enemyContract, enemyTokenId);
         assertEq(wizardsAddress, shouldBeWizAddress);
         assertEq(1, shouldBeWizTokenId);
     }
 
     function testFindAndStoreEnemyForASoulToken() public soulTokensPrepared allNftsMinted timePassed {
         vm.prank(PLAYER1);
-        (address enemyContract, uint256 enemyTokenId) = deadSecrets.enemy(soulsAddress, soulTokenIds[0]);
+        (address enemyContract, uint256 enemyTokenId) = theWaracle.enemy(soulsAddress, soulTokenIds[0]);
         vm.prank(PLAYER1);
-        (address enemyContract2, uint256 enemyTokenId2) = deadSecrets.getEnemies(soulsAddress, soulTokenIds[0]);
+        (address enemyContract2, uint256 enemyTokenId2) = theWaracle.getEnemies(soulsAddress, soulTokenIds[0]);
         assertEq(enemyContract, enemyContract2);
         assertEq(enemyTokenId, enemyTokenId2);
     }
@@ -188,22 +186,22 @@ contract DeadSecretsTest is Test {
     function testFindEnemyForNonExistantSoul() public soulTokensPrepared allNftsMinted timePassed {
         vm.expectRevert();
         vm.prank(PLAYER1);
-        deadSecrets.enemy(soulsAddress, 4111);
+        theWaracle.enemy(soulsAddress, 4111);
     }
 
     function testFindAndStoreEnemyForAWarriorToken() public soulTokensPrepared allNftsMinted timePassed {
         vm.prank(PLAYER1);
-        (address enemyContract, uint256 enemyTokenId) = deadSecrets.enemy(warriorsAddress, 3999);
+        (address enemyContract, uint256 enemyTokenId) = theWaracle.enemy(warriorsAddress, 3999);
         vm.prank(PLAYER1);
-        (address enemyContract2, uint256 enemyTokenId2) = deadSecrets.getEnemies(warriorsAddress, 3999);
+        (address enemyContract2, uint256 enemyTokenId2) = theWaracle.getEnemies(warriorsAddress, 3999);
         assertEq(enemyContract, enemyContract2);
         assertEq(enemyTokenId, enemyTokenId2);
     }
 
     function testEnemyRevertsIfNotOwnerOfToken() public soulTokensPrepared allNftsMinted timePassed {
-        vm.expectRevert(DeadSecrets.DeadSecrets__MustOwnTokenToFindEnemy.selector);
+        vm.expectRevert(TheWaracle.TheWaracle__MustOwnTokenToFindEnemy.selector);
         vm.prank(PLAYER2);
-        deadSecrets.enemy(wizardsAddress, 11);
+        theWaracle.enemy(wizardsAddress, 11);
     }
 
     function testVerifySomeEnemiesEndUpSouls() public soulTokensPrepared allNftsMinted timePassed {
@@ -212,7 +210,7 @@ contract DeadSecretsTest is Test {
             vm.warp(block.timestamp + 334567);
             vm.roll(block.number + 17000);
             vm.prank(PLAYER1);
-            (address enemyContract,) = deadSecrets.enemy(warriorsAddress, i);
+            (address enemyContract,) = theWaracle.enemy(warriorsAddress, i);
             if (enemyContract == soulsAddress) {
                 numberOfSouls++;
             }
@@ -226,7 +224,7 @@ contract DeadSecretsTest is Test {
             vm.warp(block.timestamp + 334567);
             vm.roll(block.number + 17000);
             vm.prank(PLAYER1);
-            (address enemyContract,) = deadSecrets.enemy(warriorsAddress, i);
+            (address enemyContract,) = theWaracle.enemy(warriorsAddress, i);
             if (enemyContract == wizardsAddress) {
                 numberOfWizards++;
             }
@@ -240,7 +238,7 @@ contract DeadSecretsTest is Test {
             vm.warp(block.timestamp + 334567);
             vm.roll(block.number + 17000);
             vm.prank(PLAYER1);
-            (address enemyContract,) = deadSecrets.enemy(warriorsAddress, i);
+            (address enemyContract,) = theWaracle.enemy(warriorsAddress, i);
             if (enemyContract == warriorsAddress) {
                 numberOfWarriors++;
             }
@@ -255,7 +253,7 @@ contract DeadSecretsTest is Test {
         uint256 tokenId = 5;
         address owner = NftMockContract(wizardsAddress).ownerOf(tokenId);
         vm.prank(owner, owner);
-        deadSecrets.addLore(wizardsAddress, tokenId, "testLore");
+        theWaracle.addLore(wizardsAddress, tokenId, "testLore");
         assertEq(BookOfLoreMock(bookOfLoreAddress).numLore(wizardsAddress, tokenId), 1);
     }
 }
