@@ -12,6 +12,7 @@ Forgotten Runes (FR) is a token ecosystem within which Characters and Relics cir
 This smart contract will govern a token interaction in which Characters can finally get the answer to their question: "Who is my enemy?" 
 
 Perched atop his fortified bunker, The Waracle will reveal to any Wizard, Warrior, or Soul who, in the Runiverse, is *their* mortal enemy. He’ll log the enemy pair onchain, and update their Book of Lore (through the use of addLoreWithScribe on BoL contract). This Lore entry will chronicle the Character’s visit to The Waracle and depict the name and likeness of their respective enemy. 
+
 ![Add to Lore Button](https://github.com/DeanKrupka/forgottenrunes_755/blob/main/AddToLoreButton3_small.png?raw=true)
 
 #### The Battle on the Horizon:
