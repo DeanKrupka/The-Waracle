@@ -3,7 +3,7 @@ Episode 1 - INTRODUCE:
 # **'The Waracle'**
 ### *The first ever “social oracle” in Forgotten Runes history*
 
-![The Waracle](https://github.com/DeanKrupka/forgottenrunes_755/blob/main/TheWaracleReferenceImageforReadMe.png?raw=true)
+![The Waracle]([https://github.com/DeanKrupka/forgottenrunes_755/blob/main/TheWaracleReferenceImageforReadMe.png?raw=true](https://github.com/DeanKrupka/forgottenrunes_755/blob/main/Waracle2.png?raw=true))
 
 #### Background:
 Forgotten Runes (FR) is a token ecosystem within which Characters and Relics circulate. "Token Interactions" are basically events where Characters and/or Relics get created, transferred, or destroyed. Some FR examples of this are ["The Great Burning"](https://wizzypedia.forgottenrunes.com/The_Great_Burning) and [The Nightmare Imp's Halloween 2022 Event](https://www.forgottenrunes.com/nightmareimp).
